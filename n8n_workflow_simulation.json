@@ -1,0 +1,292 @@
+{
+  "name": "AutoParts AI Agent Manufacturing System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "quality-control",
+        "options": {}
+      },
+      "id": "quality-webhook",
+      "name": "Quality Control Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "quality-control-trigger"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Quality Control Agent - Image Analysis\nconst imageData = items[0].json.imageBase64;\nconst productType = items[0].json.productType;\nconst timestamp = new Date().toISOString();\n\n// Simulate computer vision analysis\nconst qualityScore = Math.random() * 100;\nconst defectProbability = Math.random();\nconst isDefective = defectProbability > 0.85; // 15% defect rate simulation\n\n// Generate quality assessment\nconst qualityAssessment = {\n  timestamp: timestamp,\n  productId: items[0].json.productId,\n  productType: productType,\n  qualityScore: Math.round(qualityScore * 100) / 100,\n  isDefective: isDefective,\n  defectType: isDefective ? ['dimensional_variance', 'surface_imperfection', 'material_inconsistency'][Math.floor(Math.random() * 3)] : null,\n  confidence: Math.round((0.85 + Math.random() * 0.15) * 100) / 100,\n  recommendation: isDefective ? 'REJECT' : 'PASS',\n  nextActions: isDefective ? ['rework', 'quality_investigation'] : ['continue_production']\n};\n\nreturn [{\n  json: qualityAssessment\n}];"
+      },
+      "id": "quality-agent",
+      "name": "Quality Control AI Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.recommendation}}",
+              "operation": "equal",
+              "value2": "REJECT"
+            }
+          ]
+        }
+      },
+      "id": "quality-decision",
+      "name": "Quality Decision Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "predictive-maintenance",
+        "options": {}
+      },
+      "id": "maintenance-webhook",
+      "name": "Maintenance Data Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 600],
+      "webhookId": "predictive-maintenance"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Predictive Maintenance Agent\nconst sensorData = items[0].json;\nconst timestamp = new Date().toISOString();\n\n// Simulate sensor readings\nconst machineId = sensorData.machineId || 'MACHINE_' + Math.floor(Math.random() * 10);\nconst temperature = 65 + Math.random() * 30; // 65-95°C\nconst vibration = 0.5 + Math.random() * 2; // 0.5-2.5 mm/s\nconst pressure = 2.0 + Math.random() * 0.8; // 2.0-2.8 bar\nconst runningHours = Math.random() * 8760; // 0-8760 hours\n\n// Calculate failure probability\nconst tempRisk = temperature > 85 ? 0.3 : 0.1;\nconst vibRisk = vibration > 2.0 ? 0.4 : 0.1;\nconst pressRisk = pressure < 2.2 ? 0.2 : 0.05;\nconst hoursRisk = runningHours > 6000 ? 0.25 : 0.05;\n\nconst failureProbability = Math.min(tempRisk + vibRisk + pressRisk + hoursRisk, 0.95);\nconst daysToFailure = failureProbability > 0.5 ? Math.floor(Math.random() * 14) + 1 : Math.floor(Math.random() * 60) + 15;\n\nconst maintenanceRecommendation = {\n  timestamp: timestamp,\n  machineId: machineId,\n  sensorReadings: {\n    temperature: Math.round(temperature * 10) / 10,\n    vibration: Math.round(vibration * 100) / 100,\n    pressure: Math.round(pressure * 100) / 100,\n    runningHours: Math.round(runningHours)\n  },\n  failureProbability: Math.round(failureProbability * 100) / 100,\n  estimatedDaysToFailure: daysToFailure,\n  maintenanceUrgency: failureProbability > 0.7 ? 'HIGH' : failureProbability > 0.4 ? 'MEDIUM' : 'LOW',\n  recommendedActions: failureProbability > 0.5 ? ['schedule_maintenance', 'order_parts', 'plan_downtime'] : ['continue_monitoring'],\n  estimatedCost: failureProbability > 0.5 ? Math.floor(Math.random() * 5000) + 1000 : 0\n};\n\nreturn [{\n  json: maintenanceRecommendation\n}];"
+      },
+      "id": "maintenance-agent",
+      "name": "Predictive Maintenance AI Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "production-optimization",
+        "options": {}
+      },
+      "id": "production-webhook",
+      "name": "Production Optimization Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 900],
+      "webhookId": "production-optimization"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Production Optimization Agent\nconst productionData = items[0].json;\nconst timestamp = new Date().toISOString();\n\n// Simulate production parameters\nconst currentOrders = Math.floor(Math.random() * 50) + 10;\nconst availableWorkers = Math.floor(Math.random() * 20) + 15;\nconst machineCapacity = Math.floor(Math.random() * 100) + 70; // 70-170%\nconst rushOrders = Math.floor(Math.random() * 5);\n\n// Calculate optimization metrics\nconst utilizationScore = Math.min(machineCapacity / 100, 1.0);\nconst workerEfficiency = (availableWorkers / 25) * 100;\nconst deliveryPressure = rushOrders / currentOrders;\n\n// Generate production schedule\nconst scheduleOptimization = {\n  timestamp: timestamp,\n  currentState: {\n    activeOrders: currentOrders,\n    availableWorkers: availableWorkers,\n    machineUtilization: Math.round(machineCapacity),\n    rushOrders: rushOrders\n  },\n  optimizationMetrics: {\n    utilizationScore: Math.round(utilizationScore * 100) / 100,\n    workerEfficiency: Math.round(workerEfficiency),\n    deliveryPressure: Math.round(deliveryPressure * 100) / 100\n  },\n  recommendations: {\n    priorityAdjustments: rushOrders > 0 ? ['expedite_rush_orders', 'reassign_workers'] : ['maintain_schedule'],\n    resourceOptimization: machineCapacity < 80 ? ['increase_throughput', 'optimize_setup_time'] : ['maintain_pace'],\n    qualityFocus: ['monitor_defect_rates', 'adjust_speed_for_quality']\n  },\n  estimatedImprovements: {\n    throughputIncrease: Math.round(Math.random() * 15 + 5), // 5-20%\n    deliveryImprovement: Math.round(Math.random() * 10 + 5), // 5-15%\n    costReduction: Math.round(Math.random() * 12 + 3) // 3-15%\n  }\n};\n\nreturn [{\n  json: scheduleOptimization\n}];"
+      },
+      "id": "production-agent",
+      "name": "Production Optimization AI Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 900]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Dashboard Data Aggregator\nconst allData = items.map(item => item.json);\nconst timestamp = new Date().toISOString();\n\n// Aggregate all agent outputs\nconst dashboardData = {\n  timestamp: timestamp,\n  systemStatus: 'OPERATIONAL',\n  agentStatuses: {\n    qualityControl: allData.some(d => d.recommendation) ? 'ACTIVE' : 'STANDBY',\n    predictiveMaintenance: allData.some(d => d.failureProbability) ? 'ACTIVE' : 'STANDBY',\n    productionOptimization: allData.some(d => d.optimizationMetrics) ? 'ACTIVE' : 'STANDBY'\n  },\n  keyMetrics: {\n    qualityScore: allData.filter(d => d.qualityScore).reduce((sum, d) => sum + d.qualityScore, 0) / Math.max(allData.filter(d => d.qualityScore).length, 1) || 0,\n    maintenanceAlerts: allData.filter(d => d.maintenanceUrgency === 'HIGH').length,\n    productionEfficiency: allData.filter(d => d.utilizationScore).reduce((sum, d) => sum + d.utilizationScore * 100, 0) / Math.max(allData.filter(d => d.utilizationScore).length, 1) || 0\n  },\n  alerts: allData.filter(d => d.recommendation === 'REJECT' || d.maintenanceUrgency === 'HIGH').map(d => ({\n    type: d.recommendation ? 'QUALITY_ISSUE' : 'MAINTENANCE_REQUIRED',\n    severity: d.recommendation === 'REJECT' ? 'HIGH' : d.maintenanceUrgency,\n    message: d.recommendation === 'REJECT' ? `Quality issue detected: ${d.defectType}` : `Maintenance required for ${d.machineId}`,\n    timestamp: d.timestamp\n  })),\n  summary: {\n    totalProcessed: allData.length,\n    issuesDetected: allData.filter(d => d.recommendation === 'REJECT' || d.maintenanceUrgency === 'HIGH').length,\n    systemHealth: 'GOOD'\n  }\n};\n\nreturn [{\n  json: dashboardData\n}];"
+      },
+      "id": "dashboard-aggregator",
+      "name": "AI Agent Dashboard Aggregator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "subject": "Quality Issue Alert - AutoParts Manufacturing",
+        "message": "=Quality Control Agent has detected a defect:\n\nProduct ID: {{$json.productId}}\nDefect Type: {{$json.defectType}}\nConfidence: {{$json.confidence}}%\nTimestamp: {{$json.timestamp}}\n\nImmediate action required.",
+        "options": {}
+      },
+      "id": "quality-alert",
+      "name": "Quality Alert Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "subject": "Maintenance Alert - AutoParts Manufacturing",
+        "message": "=Predictive Maintenance Agent Alert:\n\nMachine ID: {{$json.machineId}}\nFailure Probability: {{$json.failureProbability}}%\nEstimated Days to Failure: {{$json.estimatedDaysToFailure}}\nUrgency: {{$json.maintenanceUrgency}}\n\nPlease schedule maintenance accordingly.",
+        "options": {}
+      },
+      "id": "maintenance-alert",
+      "name": "Maintenance Alert Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.maintenanceUrgency}}",
+              "operation": "equal",
+              "value2": "HIGH"
+            }
+          ]
+        }
+      },
+      "id": "maintenance-decision",
+      "name": "Maintenance Urgency Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 700]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.autoparts.com/dashboard/update",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{$env.API_TOKEN}}"
+          }
+        }
+      },
+      "id": "dashboard-update",
+      "name": "Update Manufacturing Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1120, 600]
+    }
+  ],
+  "connections": {
+    "quality-webhook": {
+      "main": [
+        [
+          {
+            "node": "quality-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "quality-agent": {
+      "main": [
+        [
+          {
+            "node": "quality-decision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "dashboard-aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "quality-decision": {
+      "main": [
+        [
+          {
+            "node": "quality-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "maintenance-webhook": {
+      "main": [
+        [
+          {
+            "node": "maintenance-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "maintenance-agent": {
+      "main": [
+        [
+          {
+            "node": "maintenance-decision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "dashboard-aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "maintenance-decision": {
+      "main": [
+        [
+          {
+            "node": "maintenance-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "production-webhook": {
+      "main": [
+        [
+          {
+            "node": "production-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "production-agent": {
+      "main": [
+        [
+          {
+            "node": "dashboard-aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dashboard-aggregator": {
+      "main": [
+        [
+          {
+            "node": "dashboard-update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "manufacturing",
+      "name": "Manufacturing"
+    },
+    {
+      "id": "ai-agents",
+      "name": "AI Agents"
+    },
+    {
+      "id": "autoparts",
+      "name": "AutoParts Inc"
+    }
+  ],
+  "meta": {
+    "description": "Complete AI Agent system for AutoParts Inc. manufacturing optimization including Quality Control, Predictive Maintenance, and Production Optimization agents with integrated dashboard and alert system."
+  }
+}

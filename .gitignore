@@ -1,0 +1,30 @@
+# Ignore temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore build artifacts
+dist/
+build/
+*.pyc
+__pycache__/
+
+# Ignore sensitive data
+config/secrets.json
+.env
+*.key
+
+# Ignore n8n specific files
+workflows/temp/
+workflows/backup/
